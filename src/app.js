@@ -1,0 +1,53 @@
+import express from "express";
+import chalk from "chalk";
+import bodyParser from "body-parser";
+import { ZENCODE_DIR, HTTP_PORT, HTTPS_PORT, HOST, OPENAPI } from "./config";
+import zencode from "@restroom-mw/core";
+import ui from "@restroom-mw/ui";
+import httpmw from "@restroom-mw/http";
+import redis from "@restroom-mw/redis";
+import timestamp from "@restroom-mw/timestamp";
+import http from "http";
+import https from "https";
+import fs from "fs";
+
+var privateKey = fs.readFileSync("ssl/selfsigned.key", "utf8");
+var certificate = fs.readFileSync("ssl/selfsigned.crt", "utf8");
+var credentials = { key: privateKey, cert: certificate };
+
+
+const app = express();
+
+app.use(bodyParser.urlencoded({ extended: false }));
+app.use(bodyParser.json());
+app.use(require("morgan")("dev"));
+app.set("json spaces", 2);
+
+app.use(httpmw);
+app.use(redis);
+app.use(timestamp);
+app.use("/api/*", zencode);
+if (OPENAPI) {
+  app.use("/docs", ui({ path: "./zencode" }));
+  app.use("/one", ui({ path: "./zencode/one" }));
+  app.use("/two", ui({ path: "./zencode/two" }));
+}
+
+const httpServer = http.createServer(app);
+httpServer.listen(HTTP_PORT, HOST, () => {
+  console.log(
+    "Restroom started on " + chalk`{bold.blue http://0.0.0.0:${HTTP_PORT}}`
+  );
+});
+
+const httpsServer = https.createServer(credentials, app);
+httpsServer.listen(HTTPS_PORT, HOST, () => {
+  console.log(
+    "Restroom started on " + chalk`{bold.blue https://0.0.0.0:${HTTPS_PORT}} \n`
+  );
+  console.log(`the ZENCODE directory is: ${chalk.magenta.underline(ZENCODE_DIR)} \n`);
+  if (OPENAPI) {
+    console.log( "To open OpenApi go to: " + chalk`{bold.blue http://0.0.0.0:${HTTP_PORT}/docs}`);
+    console.log( "To disable OpenApi, set OPENAPI .env variable as false.");
+  }
+});
