@@ -7,6 +7,8 @@ import ui from "@restroom-mw/ui";
 import httpmw from "@restroom-mw/http";
 import redis from "@restroom-mw/redis";
 import timestamp from "@restroom-mw/timestamp";
+import files from "@restroom-mw/files";
+import fabric from "@restroom-mw/fabric";
 import http from "http";
 import https from "https";
 import fs from "fs";
@@ -26,6 +28,8 @@ app.set("json spaces", 2);
 app.use(httpmw);
 app.use(redis);
 app.use(timestamp);
+app.use(files);
+app.use(fabric);
 app.use("/api/*", zencode);
 if (OPENAPI) {
   app.use("/docs", ui({ path: "./zencode" }));
