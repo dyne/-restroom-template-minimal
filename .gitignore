@@ -2,7 +2,6 @@
 node_modules
 dist/
 yarn-error.log
-yarn.lock
 lerna-debug.log
 .nyc_output
 /.gtm/
